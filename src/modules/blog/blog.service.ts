@@ -47,7 +47,7 @@ export class BlogService {
 
   getBlogBySlug = async (slug: string) => {
     const blog = await this.prisma.blog.findFirst({
-      where: { slug },
+      where: { slug, deletedAt: null },
       include: { user: { omit: { password: true } } },
     });
     if (!blog) throw new ApiError("Blog not found", 400);
@@ -77,5 +77,21 @@ export class BlogService {
         slug,
       },
     });
+  };
+
+  deleteBlog = async (id: number, authUserId: number) => {
+    const blog = await this.prisma.blog.findFirst({
+      where: { id },
+    });
+    if (!blog) throw new ApiError("Blog not found", 400);
+    if (blog.userId !== authUserId)
+      throw new ApiError("You are not authorized to delete this blog", 403);
+    await this.cloudinaryService.remove(blog.thumbnail);
+    await this.prisma.blog.update({
+      where: { id },
+      data: { thumbnail: "", deletedAt: new Date() },
+    });
+
+    return { message: "Delete blog successfully" };
   };
 }
