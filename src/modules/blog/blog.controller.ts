@@ -11,7 +11,7 @@ export class BlogController {
   constructor(BlogService: BlogService) {
     this.blogService = BlogService;
   }
-  getSamples = async (req: Request, res: Response, next: NextFunction) => {
+  getBlogs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = plainToInstance(GetBlogsDTO, req.query);
       const result = await this.blogService.getBlogs(query);
@@ -21,6 +21,14 @@ export class BlogController {
     }
   };
 
+  getBlogBySlug = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.blogService.getBlogBySlug(req.params.slug);
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
   createBlog = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
